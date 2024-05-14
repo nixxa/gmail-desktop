@@ -6,6 +6,8 @@ import initDarkMode from './dark-mode'
 
 import elementReady = require('element-ready')
 
+log.debug('Initialize preload.ts')
+
 const INTERVAL = 1000
 let count: number
 
@@ -13,14 +15,10 @@ initDarkMode()
 
 function getUnreadCount(): number {
   // Find the number next to the inbox label
-  const navigation = document.querySelector(
-    'div[role=navigation] [href*="#inbox"]'
-  )
+  const navigation = document.querySelector('div[role=navigation]')
 
   if (navigation) {
-    const label: HTMLLabelElement | null = navigation.parentElement!.parentElement!.querySelector(
-      '.bsU'
-    )
+    const label = navigation.querySelector('div[role=link]>span>span')
 
     // Return the unread count (0 by default)
     if (label?.textContent) {
@@ -33,6 +31,8 @@ function getUnreadCount(): number {
 
 function updateUnreadCount(): void {
   const newCount = getUnreadCount()
+
+  log.debug(`Unread count: ${newCount}`)
 
   // Only fire the event when necessary
   if (count !== newCount) {

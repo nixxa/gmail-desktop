@@ -48,8 +48,7 @@ const shouldStartMinimized =
   app.commandLine.hasSwitch('launch-minimized') ||
   config.get(ConfigKey.LaunchMinimized)
 
-const trayIcon = createTrayIcon(false)
-const trayIconUnread = createTrayIcon(true)
+const trayIcon = createTrayIcon(0)
 
 app.setAppUserModelId('io.cheung.gmail-desktop')
 
@@ -233,7 +232,7 @@ function createWindow(): void {
     }
 
     if (tray) {
-      tray.setImage(unreadCount ? trayIconUnread : trayIcon)
+      tray.setImage(unreadCount ? createTrayIcon(unreadCount) : trayIcon)
       if (is.macos) {
         tray.setTitle(unreadCount ? unreadCount.toString() : '')
       }

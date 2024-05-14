@@ -22,7 +22,7 @@
     "build:linux": "electron-builder --linux --publish never",
     "build:windows": "electron-builder --windows --publish never",
     "compile": "tsc",
-    "build": "run-s compile build:*"
+    "build": "run-s compile build:linux"
   },
   "dependencies": {
     "darkreader": "^4.9.27",

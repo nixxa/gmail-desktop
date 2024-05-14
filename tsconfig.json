@@ -5,6 +5,7 @@
     "outDir": "dist-js",
     "target": "es2018",
     "module": "commonjs",
-    "lib": ["esnext", "dom", "dom.iterable"]
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "sourceMap": true
   }
 }
