@@ -6,8 +6,6 @@ import initDarkMode from './dark-mode'
 
 import elementReady = require('element-ready')
 
-log.debug('Initialize preload.ts')
-
 const INTERVAL = 1000
 let count: number
 
@@ -31,8 +29,6 @@ function getUnreadCount(): number {
 
 function updateUnreadCount(): void {
   const newCount = getUnreadCount()
-
-  log.debug(`Unread count: ${newCount}`)
 
   // Only fire the event when necessary
   if (count !== newCount) {
