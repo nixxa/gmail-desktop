@@ -9,7 +9,8 @@ import {
   Tray,
   MenuItemConstructorOptions,
   dialog,
-  nativeTheme
+  nativeTheme,
+  IpcMainEvent
 } from 'electron'
 import { is } from 'electron-util'
 
@@ -33,6 +34,11 @@ import ensureOnline from './ensure-online'
 import { autoFixUserAgent, removeCustomUserAgent } from './user-agent'
 
 import electronContextMenu = require('electron-context-menu')
+
+// if (process.platform === 'linux' && process.env['XDG_CURRENT_DESKTOP'] == 'KDE') {
+//   // KDE supports UnityAPI via libunity, but app.isUnityRunning() returns false without that fix
+//   process.env['XDG_CURRENT_DESKTOP'] = 'Unity'
+// }
 
 initDebug()
 initDownloads()
@@ -98,9 +104,8 @@ function createWindow(): void {
     x: lastWindowState.bounds.x,
     y: lastWindowState.bounds.y,
     webPreferences: {
-      nodeIntegration: false,
-      nativeWindowOpen: true,
-      preload: path.join(__dirname, 'preload')
+      nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.js')
     },
     show: !shouldStartMinimized,
     icon: is.linux
@@ -226,7 +231,7 @@ function createWindow(): void {
     }
   }
 
-  ipc.on('unread-count', (_: Event, unreadCount: number) => {
+  ipc.on('unread-count', (_: IpcMainEvent, unreadCount: number) => {
     if (is.macos) {
       app.dock.setBadge(unreadCount ? unreadCount.toString() : '')
     }
@@ -236,6 +241,10 @@ function createWindow(): void {
       if (is.macos) {
         tray.setTitle(unreadCount ? unreadCount.toString() : '')
       }
+    }
+
+    if (app.isUnityRunning && app.isUnityRunning()) {
+      app.setBadgeCount(unreadCount)
     }
   })
 }
@@ -480,13 +489,17 @@ app.on('before-quit', () => {
   })
 
   // eslint-disable-next-line max-params
-  webContents.on('new-window', (event: any, url, _1, _2, options) => {
-    event.preventDefault()
+  webContents.setWindowOpenHandler((details) => {
+  // })
 
+  // webContents.on('did-create-window', (event: Event, url, _1, _2, options) => {
+  //   event.preventDefault()
+
+    let url = details.url
     // `Add account` opens `accounts.google.com`
     if (url.startsWith('https://accounts.google.com')) {
       mainWindow.loadURL(url)
-      return
+      return { action: 'allow' }
     }
 
     if (url.startsWith('https://mail.google.com')) {
@@ -497,49 +510,52 @@ app.on('before-quit', () => {
 
       if (targetAccountId !== currentAccountId) {
         mainWindow.loadURL(url)
-        return
+        return { action: 'allow' }
       }
 
+      return {action:'deny'}
+
       // Center the new window on the screen
-      event.newGuest = new BrowserWindow({
-        ...options,
-        titleBarStyle: 'default',
-        x: undefined,
-        y: undefined
-      })
+      // event.newGuest = new BrowserWindow({
+      //   ...options,
+      //   titleBarStyle: 'default',
+      //   x: undefined,
+      //   y: undefined
+      // })
 
-      event.newGuest.webContents.on('dom-ready', () => {
-        addCustomCSS(event.newGuest)
-      })
+      // event.newGuest.webContents.on('dom-ready', () => {
+      //   addCustomCSS(event.newGuest)
+      // })
 
-      event.newGuest.webContents.on(
-        'new-window',
-        (event: Event, url: string) => {
-          event.preventDefault()
-          openExternalUrl(url)
-        }
-      )
+      // event.newGuest.webContents.on(
+      //   'new-window',
+      //   (event: Event, url: string) => {
+      //     event.preventDefault()
+      //     openExternalUrl(url)
+      //   }
+      // )
 
-      return
+      // return
     }
 
-    if (url.startsWith('about:blank')) {
-      const win = new BrowserWindow({
-        ...options,
-        show: false
-      })
+    // if (url.startsWith('about:blank')) {
+    //   const win = new BrowserWindow({
+    //     ...options,
+    //     show: false
+    //   })
 
-      win.webContents.once('will-redirect', (_event, url) => {
-        openExternalUrl(url)
-        win.destroy()
-      })
+    //   win.webContents.once('will-redirect', (_event, url) => {
+    //     openExternalUrl(url)
+    //     win.destroy()
+    //   })
 
-      event.newGuest = win
+    //   event.newGuest = win
 
-      return
-    }
+    //   return
+    // }
 
     openExternalUrl(url)
+    return { action: 'allow' }
   })
 
   if (config.get(ConfigKey.DarkMode) === undefined) {

@@ -1,0 +1,18 @@
+[Desktop Entry]
+Comment[en_US]=
+Comment=
+Exec=env CHROME_DESKTOP=gmail-desktop XDG_CURRENT_DESKTOP=Unity __PATH_TO_APPIMAGE__
+StartupWMClass=gmail-desktop
+GenericName[en_US]=Gmail
+GenericName=Gmail
+Icon=gmail
+Name[en_US]=Gmail
+Name=Gmail
+Path=
+Type=Application
+Terminal=false
+MimeType=x-scheme-handler/ssconf;x-scheme-handler/ss;
+DBusActivatable=true
+SingleMainWindow=true
+X-GNOME-UsesNotifications=true
+X-GNOME-SingleWindow=true

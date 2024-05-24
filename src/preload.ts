@@ -91,12 +91,12 @@ window.addEventListener('load', () => {
 })
 
 // Toggle a custom style class when a message is received from the main process
-ipc.on('set-custom-style', (_: Event, key: ConfigKey, enabled: boolean) => {
+ipc.on('set-custom-style', (_: Electron.IpcRendererEvent, key: ConfigKey, enabled: boolean) => {
   document.body.classList[enabled ? 'add' : 'remove'](key)
 })
 
 // Toggle a full screen class when a message is received from the main process
-ipc.on('set-full-screen', (_: Event, enabled: boolean) => {
+ipc.on('set-full-screen', (_: Electron.IpcRendererEvent, enabled: boolean) => {
   document.body.classList[enabled ? 'add' : 'remove']('full-screen')
 })
 
