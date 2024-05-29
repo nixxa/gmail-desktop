@@ -214,6 +214,14 @@ export function initOrUpdateMenu() {
           }
         },
         {
+          label: 'Minimize On Exit',
+          type: 'checkbox',
+          checked: config.get(ConfigKey.MinimizeOnExit),
+          click({ checked }: { checked: boolean }) {
+            config.set(ConfigKey.MinimizeOnExit, checked)
+          }
+        },
+        {
           label: 'Hardware Acceleration',
           type: 'checkbox',
           checked: config.get(ConfigKey.HardwareAcceleration),

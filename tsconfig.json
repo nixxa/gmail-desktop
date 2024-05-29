@@ -3,8 +3,8 @@
   "include": ["src/**/*"],
   "compilerOptions": {
     "outDir": "dist-js",
-    "target": "es2018",
-    "module": "es2022",
+    "target": "ES2022",
+    "module": "CommonJS",
     "esModuleInterop": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "sourceMap": true

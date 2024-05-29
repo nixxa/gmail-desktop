@@ -53,7 +53,6 @@ app.setAppUserModelId('io.cheung.gmail-desktop')
 
 let mainWindow: BrowserWindow
 let replyToWindow: BrowserWindow
-let isQuitting = false
 let tray: Tray | undefined
 let trayContextMenu: Menu
 
@@ -198,9 +197,16 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.on('close', (error) => {
-    if (!isQuitting) {
-      error.preventDefault()
+  mainWindow.on('close', (event) => {
+    config.set(ConfigKey.LastWindowState, {
+      bounds: mainWindow.getBounds(),
+      fullscreen: mainWindow.isFullScreen(),
+      maximized: mainWindow.isMaximized()
+    })
+
+    const minimizeOnExit = config.get(ConfigKey.MinimizeOnExit)
+    if (minimizeOnExit) {
+      event.preventDefault()
       mainWindow.blur()
       mainWindow.hide()
     }
@@ -320,19 +326,15 @@ app.on('activate', () => {
   }
 })
 
-app.on('before-quit', () => {
-  isQuitting = true
-
-  if (mainWindow) {
-    config.set(ConfigKey.LastWindowState, {
-      bounds: mainWindow.getBounds(),
-      fullscreen: mainWindow.isFullScreen(),
-      maximized: mainWindow.isMaximized()
-    })
+app.on('quit', (event) => {
+  const minimizeOnExit = config.get(ConfigKey.MinimizeOnExit)
+  if (minimizeOnExit) {
+    event.preventDefault()
+    mainWindow.blur()
+    mainWindow.hide()
   }
 })
-
-async function main() {
+;(async () => {
   await Promise.all([ensureOnline(), app.whenReady()])
 
   const customUserAgent = config.get(ConfigKey.CustomUserAgent)
@@ -550,6 +552,4 @@ async function main() {
       // No default
     }
   }
-}
-
-await main()
+})()

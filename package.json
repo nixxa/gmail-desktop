@@ -82,6 +82,7 @@
       "@typescript-eslint/switch-exhaustiveness-check": "off",
       "@typescript-eslint/naming-convention": "off",
       "unicorn/prefer-module": "off",
+      "unicorn/prefer-top-level-await": "off",
       "import/extensions": [
         "error",
         "ignorePackages",
