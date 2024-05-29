@@ -1,6 +1,5 @@
 import { app } from 'electron'
-import * as path from 'path'
-
+import * as path from 'node:path'
 import config, { ConfigKey } from './config'
 import { sendChannelToMainWindow, getMainWindow } from './utils'
 

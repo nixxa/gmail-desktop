@@ -1,6 +1,6 @@
 import { shell } from 'electron'
-import * as path from 'path'
-import electronDl = require('electron-dl')
+import * as path from 'node:path'
+import electronDl from 'electron-dl'
 import config, { ConfigKey } from './config'
 import { createNotification } from './notifications'
 

@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('node:path')
 const got = require('got')
 const writeJsonFile = require('write-json-file')
 
@@ -36,4 +36,4 @@ async function main() {
   console.log('Updated User Agents')
 }
 
-main()
+await main()

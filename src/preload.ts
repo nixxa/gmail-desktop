@@ -1,10 +1,8 @@
 import { ipcRenderer as ipc } from 'electron'
 import log from 'electron-log'
-
-import { ConfigKey } from './config'
+import elementReady from 'element-ready'
+import { type ConfigKey } from './config'
 import initDarkMode from './dark-mode'
-
-import elementReady = require('element-ready')
 
 const INTERVAL = 1000
 let count: number
@@ -53,7 +51,7 @@ function attachButtonListeners(): void {
     const buttonReady = elementReady(`body.xE .G-atb .${selector}`)
     const readyTimeout = setTimeout(() => {
       buttonReady.stop()
-    }, 10000)
+    }, 10_000)
 
     buttonReady.then((button) => {
       clearTimeout(readyTimeout)
@@ -91,9 +89,12 @@ window.addEventListener('load', () => {
 })
 
 // Toggle a custom style class when a message is received from the main process
-ipc.on('set-custom-style', (_: Electron.IpcRendererEvent, key: ConfigKey, enabled: boolean) => {
-  document.body.classList[enabled ? 'add' : 'remove'](key)
-})
+ipc.on(
+  'set-custom-style',
+  (_: Electron.IpcRendererEvent, key: ConfigKey, enabled: boolean) => {
+    document.body.classList[enabled ? 'add' : 'remove'](key)
+  }
+)
 
 // Toggle a full screen class when a message is received from the main process
 ipc.on('set-full-screen', (_: Electron.IpcRendererEvent, enabled: boolean) => {

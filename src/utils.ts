@@ -25,23 +25,23 @@ export function setAppMenuBarVisibility(showTip?: boolean): void {
 
 export function sendChannelToMainWindow(
   channel: string,
-  ...args: unknown[]
+  ...arguments_: unknown[]
 ): void {
   const mainWindow = getMainWindow()
 
   if (mainWindow) {
-    mainWindow.webContents.send(channel, ...args)
+    mainWindow.webContents.send(channel, ...arguments_)
   }
 }
 
 export function sendChannelToAllWindows(
   channel: string,
-  ...args: unknown[]
+  ...arguments_: unknown[]
 ): void {
   const windows = BrowserWindow.getAllWindows()
 
   for (const window of windows) {
-    window.webContents.send(channel, ...args)
+    window.webContents.send(channel, ...arguments_)
   }
 }
 

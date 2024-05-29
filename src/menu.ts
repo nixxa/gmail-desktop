@@ -2,21 +2,20 @@ import {
   app,
   shell,
   Menu,
-  MenuItemConstructorOptions,
+  type MenuItemConstructorOptions,
   dialog,
   nativeTheme
 } from 'electron'
-import * as fs from 'fs'
+import * as fs from 'node:fs'
 import { is } from 'electron-util'
-
-import { checkForUpdates, changeReleaseChannel } from './updates'
+import { checkForUpdates, changeReleaseChannel } from './update-handlers'
 import config, { ConfigKey } from './config'
 import { setCustomStyle, USER_CUSTOM_STYLE_PATH } from './custom-styles'
 import { viewLogs } from './logs'
 import { showRestartDialog, setAppMenuBarVisibility } from './utils'
 import { autoFixUserAgent, removeCustomUserAgent } from './user-agent'
 
-interface AppearanceMenuItem {
+type AppearanceMenuItem = {
   key: ConfigKey
   label: string
   restartDialogText?: string

@@ -1,5 +1,5 @@
-import * as path from 'path'
-import { nativeImage, NativeImage } from 'electron'
+import * as path from 'node:path'
+import { nativeImage, type NativeImage } from 'electron'
 import { platform as selectPlatform, is } from 'electron-util'
 
 // URL: `mail.google.com/mail/u/<local_account_id>`

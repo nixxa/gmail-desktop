@@ -30,7 +30,7 @@ function showWaitDialog(): void {
 
 export default async function ensureOnline(): Promise<void> {
   if (!(await isOnline())) {
-    const connectivityTimeout = setTimeout(showWaitDialog, 15000)
+    const connectivityTimeout = setTimeout(showWaitDialog, 15_000)
 
     await pWaitFor(isOnline, { interval: 1000 })
     clearTimeout(connectivityTimeout)
