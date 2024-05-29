@@ -1,5 +1,5 @@
-import * as path from 'path'
-import { nativeImage, NativeImage } from 'electron'
+import * as path from 'node:path'
+import { nativeImage, type NativeImage } from 'electron'
 import { platform as selectPlatform, is } from 'electron-util'
 
 // URL: `mail.google.com/mail/u/<local_account_id>`
@@ -17,15 +17,18 @@ export const platform: 'macos' | 'linux' | 'windows' = selectPlatform({
 /**
  * Create a tray icon.
  *
- * @param unread True to create the unead icon; false to create the normal icon.
+ * @param unread Number of unread messages
  */
-export function createTrayIcon(unread: boolean): NativeImage {
+export function createTrayIcon(unread: number): NativeImage {
   let iconFileName
 
   if (is.macos) {
     iconFileName = 'tray-icon.macos.Template.png'
   } else {
-    iconFileName = unread ? 'tray-icon-unread.png' : 'tray-icon.png'
+    iconFileName =
+      unread > 0
+        ? `tray-icon-unread-${unread < 10 ? unread : 'm'}.png`
+        : 'tray-icon.png'
   }
 
   return nativeImage.createFromPath(

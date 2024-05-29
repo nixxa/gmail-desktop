@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { platform } from './helpers'
 import config, { ConfigKey } from './config'
-import userAgents = require('./user-agents.json')
+import userAgents from './user-agents.json'
 
 export function removeCustomUserAgent(): void {
   config.set(ConfigKey.CustomUserAgent, '')

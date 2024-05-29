@@ -4,7 +4,9 @@
   "compilerOptions": {
     "outDir": "dist-js",
     "target": "es2018",
-    "module": "commonjs",
-    "lib": ["esnext", "dom", "dom.iterable"]
+    "module": "es2022",
+    "esModuleInterop": true,
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "sourceMap": true
   }
 }

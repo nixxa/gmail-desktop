@@ -1,3 +1,4 @@
+const { process } = require('node:process')
 const { notarize } = require('electron-notarize')
 
 exports.default = (context) => {

@@ -1,5 +1,5 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import {
   app,
   ipcMain as ipc,
@@ -7,12 +7,13 @@ import {
   BrowserWindow,
   Menu,
   Tray,
-  MenuItemConstructorOptions,
+  type MenuItemConstructorOptions,
   dialog,
-  nativeTheme
+  nativeTheme,
+  type IpcMainEvent
 } from 'electron'
 import { is } from 'electron-util'
-
+import contextMenu from 'electron-context-menu'
 import { init as initAutoUpdates } from './updates'
 import config, { ConfigKey } from './config'
 import {
@@ -32,13 +33,11 @@ import {
 import ensureOnline from './ensure-online'
 import { autoFixUserAgent, removeCustomUserAgent } from './user-agent'
 
-import electronContextMenu = require('electron-context-menu')
-
 initDebug()
 initDownloads()
 initAutoUpdates()
 
-electronContextMenu({ showCopyImageAddress: true, showSaveImageAs: true })
+contextMenu({ showCopyImageAddress: true, showSaveImageAs: true })
 
 if (!config.get(ConfigKey.HardwareAcceleration)) {
   app.disableHardwareAcceleration()
@@ -48,8 +47,7 @@ const shouldStartMinimized =
   app.commandLine.hasSwitch('launch-minimized') ||
   config.get(ConfigKey.LaunchMinimized)
 
-const trayIcon = createTrayIcon(false)
-const trayIconUnread = createTrayIcon(true)
+const trayIcon = createTrayIcon(0)
 
 app.setAppUserModelId('io.cheung.gmail-desktop')
 
@@ -74,14 +72,19 @@ app.on('second-instance', () => {
 })
 
 switch (config.get(ConfigKey.DarkMode)) {
-  case 'system':
+  case 'system': {
     nativeTheme.themeSource = 'system'
     break
-  case true:
+  }
+
+  case true: {
     nativeTheme.themeSource = 'dark'
     break
-  default:
+  }
+
+  default: {
     nativeTheme.themeSource = 'light'
+  }
 }
 
 function createWindow(): void {
@@ -100,8 +103,8 @@ function createWindow(): void {
     y: lastWindowState.bounds.y,
     webPreferences: {
       nodeIntegration: false,
-      nativeWindowOpen: true,
-      preload: path.join(__dirname, 'preload')
+      sandbox: false,
+      preload: path.join(__dirname, 'preload.js')
     },
     show: !shouldStartMinimized,
     icon: is.linux
@@ -227,16 +230,20 @@ function createWindow(): void {
     }
   }
 
-  ipc.on('unread-count', (_: Event, unreadCount: number) => {
+  ipc.on('unread-count', (_: IpcMainEvent, unreadCount: number) => {
     if (is.macos) {
       app.dock.setBadge(unreadCount ? unreadCount.toString() : '')
     }
 
     if (tray) {
-      tray.setImage(unreadCount ? trayIconUnread : trayIcon)
+      tray.setImage(unreadCount ? createTrayIcon(unreadCount) : trayIcon)
       if (is.macos) {
         tray.setTitle(unreadCount ? unreadCount.toString() : '')
       }
+    }
+
+    if (app.isUnityRunning?.()) {
+      app.setBadgeCount(unreadCount)
     }
   })
 }
@@ -288,7 +295,7 @@ async function openExternalUrl(url: string): Promise<void> {
         buttons: ['Open Link', 'Cancel'],
         message: `Do you want to open this external link in your default browser?`,
         checkboxLabel: `Trust all links on ${origin}`,
-        detail: cleanURL
+        detail: cleanURL.length > 80 ? cleanURL.slice(0, 80) + '...' : cleanURL
       })
 
       if (response !== 0) return
@@ -324,7 +331,8 @@ app.on('before-quit', () => {
     })
   }
 })
-;(async () => {
+
+async function main() {
   await Promise.all([ensureOnline(), app.whenReady()])
 
   const customUserAgent = config.get(ConfigKey.CustomUserAgent)
@@ -387,7 +395,7 @@ app.on('before-quit', () => {
 
     const contextMenuTemplate: MenuItemConstructorOptions[] = [
       {
-        click: () => {
+        click() {
           mainWindow.show()
         },
         label: 'Show',
@@ -397,7 +405,7 @@ app.on('before-quit', () => {
       {
         label: 'Hide',
         visible: !shouldStartMinimized,
-        click: () => {
+        click() {
           mainWindow.hide()
         },
         id: 'hide-win'
@@ -480,14 +488,12 @@ app.on('before-quit', () => {
     }
   })
 
-  // eslint-disable-next-line max-params
-  webContents.on('new-window', (event: any, url, _1, _2, options) => {
-    event.preventDefault()
-
+  webContents.setWindowOpenHandler((details) => {
+    const url = details.url
     // `Add account` opens `accounts.google.com`
     if (url.startsWith('https://accounts.google.com')) {
       mainWindow.loadURL(url)
-      return
+      return { action: 'allow' }
     }
 
     if (url.startsWith('https://mail.google.com')) {
@@ -498,49 +504,14 @@ app.on('before-quit', () => {
 
       if (targetAccountId !== currentAccountId) {
         mainWindow.loadURL(url)
-        return
+        return { action: 'allow' }
       }
 
-      // Center the new window on the screen
-      event.newGuest = new BrowserWindow({
-        ...options,
-        titleBarStyle: 'default',
-        x: undefined,
-        y: undefined
-      })
-
-      event.newGuest.webContents.on('dom-ready', () => {
-        addCustomCSS(event.newGuest)
-      })
-
-      event.newGuest.webContents.on(
-        'new-window',
-        (event: Event, url: string) => {
-          event.preventDefault()
-          openExternalUrl(url)
-        }
-      )
-
-      return
-    }
-
-    if (url.startsWith('about:blank')) {
-      const win = new BrowserWindow({
-        ...options,
-        show: false
-      })
-
-      win.webContents.once('will-redirect', (_event, url) => {
-        openExternalUrl(url)
-        win.destroy()
-      })
-
-      event.newGuest = win
-
-      return
+      return { action: 'deny' }
     }
 
     openExternalUrl(url)
+    return { action: 'deny' }
   })
 
   if (config.get(ConfigKey.DarkMode) === undefined) {
@@ -552,18 +523,33 @@ app.on('before-quit', () => {
       buttons: ['Yes', 'No', 'Follow System Appearance', 'Ask Again Later']
     })
 
-    if (response === 0) {
-      nativeTheme.themeSource = 'dark'
-      config.set(ConfigKey.DarkMode, true)
-      initOrUpdateMenu()
-    } else if (response === 1) {
-      nativeTheme.themeSource = 'light'
-      config.set(ConfigKey.DarkMode, false)
-      initOrUpdateMenu()
-    } else if (response === 2) {
-      nativeTheme.themeSource = 'system'
-      config.set(ConfigKey.DarkMode, 'system')
-      initOrUpdateMenu()
+    switch (response) {
+      case 0: {
+        nativeTheme.themeSource = 'dark'
+        config.set(ConfigKey.DarkMode, true)
+        initOrUpdateMenu()
+
+        break
+      }
+
+      case 1: {
+        nativeTheme.themeSource = 'light'
+        config.set(ConfigKey.DarkMode, false)
+        initOrUpdateMenu()
+
+        break
+      }
+
+      case 2: {
+        nativeTheme.themeSource = 'system'
+        config.set(ConfigKey.DarkMode, 'system')
+        initOrUpdateMenu()
+
+        break
+      }
+      // No default
     }
   }
-})()
+}
+
+await main()

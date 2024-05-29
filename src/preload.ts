@@ -1,10 +1,8 @@
 import { ipcRenderer as ipc } from 'electron'
 import log from 'electron-log'
-
-import { ConfigKey } from './config'
+import elementReady from 'element-ready'
+import { type ConfigKey } from './config'
 import initDarkMode from './dark-mode'
-
-import elementReady = require('element-ready')
 
 const INTERVAL = 1000
 let count: number
@@ -13,14 +11,10 @@ initDarkMode()
 
 function getUnreadCount(): number {
   // Find the number next to the inbox label
-  const navigation = document.querySelector(
-    'div[role=navigation] [href*="#inbox"]'
-  )
+  const navigation = document.querySelector('div[role=navigation]')
 
   if (navigation) {
-    const label: HTMLLabelElement | null = navigation.parentElement!.parentElement!.querySelector(
-      '.bsU'
-    )
+    const label = navigation.querySelector('div[role=link]>span>span')
 
     // Return the unread count (0 by default)
     if (label?.textContent) {
@@ -57,7 +51,7 @@ function attachButtonListeners(): void {
     const buttonReady = elementReady(`body.xE .G-atb .${selector}`)
     const readyTimeout = setTimeout(() => {
       buttonReady.stop()
-    }, 10000)
+    }, 10_000)
 
     buttonReady.then((button) => {
       clearTimeout(readyTimeout)
@@ -95,12 +89,15 @@ window.addEventListener('load', () => {
 })
 
 // Toggle a custom style class when a message is received from the main process
-ipc.on('set-custom-style', (_: Event, key: ConfigKey, enabled: boolean) => {
-  document.body.classList[enabled ? 'add' : 'remove'](key)
-})
+ipc.on(
+  'set-custom-style',
+  (_: Electron.IpcRendererEvent, key: ConfigKey, enabled: boolean) => {
+    document.body.classList[enabled ? 'add' : 'remove'](key)
+  }
+)
 
 // Toggle a full screen class when a message is received from the main process
-ipc.on('set-full-screen', (_: Event, enabled: boolean) => {
+ipc.on('set-full-screen', (_: Electron.IpcRendererEvent, enabled: boolean) => {
   document.body.classList[enabled ? 'add' : 'remove']('full-screen')
 })
 

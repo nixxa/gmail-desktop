@@ -1,6 +1,5 @@
+import electronDebug from 'electron-debug'
 import config, { ConfigKey } from './config'
-
-import electronDebug = require('electron-debug')
 
 const OPTIONS = {
   showDevTools: false,

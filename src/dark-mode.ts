@@ -54,13 +54,14 @@ function enableDarkMode(): void {
         '.aj2',
         // Hangouts Phone
         '.a8V'
-      ]
+      ],
+      disableStyleSheetsProxy: false
     }
   )
 }
 
 async function initDarkMode(): Promise<void> {
-  const darkMode = await ipc.invoke('dark-mode')
+  const darkMode = (await ipc.invoke('dark-mode')) as boolean
 
   if (darkMode) {
     window.addEventListener('DOMContentLoaded', () => {

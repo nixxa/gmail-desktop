@@ -1,9 +1,8 @@
 import { app } from 'electron'
 import { is } from 'electron-util'
+import Store from 'electron-store'
 
-import Store = require('electron-store')
-
-interface LastWindowState {
+type LastWindowState = {
   bounds: {
     width: number
     height: number
@@ -98,27 +97,25 @@ const config = new Store<TypedStore>({
   defaults,
   name: is.development ? 'config.dev' : 'config',
   migrations: {
-    '>=2.21.2': (store) => {
-      const hideRightSidebar: boolean | undefined = store.get(
-        'hideRightSidebar'
-      )
+    '>=2.21.2'(store) {
+      const hideRightSidebar: boolean | undefined =
+        store.get('hideRightSidebar')
 
       if (typeof hideRightSidebar === 'boolean') {
-        // @ts-expect-error
+        // @ts-expect-error lint reports an error
         store.delete('hideRightSidebar')
       }
     },
-    '>2.21.2': (store) => {
-      const overrideUserAgent: string | undefined = store.get(
-        'overrideUserAgent'
-      )
+    '>2.21.2'(store) {
+      const overrideUserAgent: string | undefined =
+        store.get('overrideUserAgent')
 
       if (typeof overrideUserAgent === 'string') {
         if (overrideUserAgent.length > 0) {
           store.set(ConfigKey.CustomUserAgent, overrideUserAgent)
         }
 
-        // @ts-expect-error
+        // @ts-expect-error lint reports an error
         store.delete('overrideUserAgent')
       }
     }
